@@ -38,6 +38,8 @@ function GameScreen() {
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [userInitials, setUserInitials] = useState("");
   const [initialsSubmitted, setInitialsSubmitted] = useState(false); //prevent spam submissions
+  const [isIncorrectSubmission, setIsIncorrectSubmission] = useState(false);
+
   
   useEffect(() => {
     setBoard(generateBoard());
@@ -82,13 +84,21 @@ function GameScreen() {
   const submitWord = () => {
     const word = selectedLetters.join('').toLowerCase();
     if (dictionary.includes(word)) {
-      setScore((prevScore) => prevScore + generateScore(word));
+        // Correct word
+        setScore((prevScore) => prevScore + generateScore(word));
+        setSelectedLetters([]); // Reset only if the word is correct
+        setSelectedPositions([]); // Reset only if the word is correct
     } else {
-      Alert.alert("Invalid Word", word);
+        // Incorrect word
+        setIsIncorrectSubmission(true);
+        setTimeout(() => {
+            setIsIncorrectSubmission(false);
+            setSelectedLetters([]); // Consider resetting even if the word is incorrect, to clear selection
+            setSelectedPositions([]); // Consider resetting even if the word is incorrect, to clear selection
+        }, 300); // Keep this to visually indicate an incorrect word, then reset
     }
-    setSelectedLetters([]);
-    setSelectedPositions([]);
-  };
+};
+
 
   const generateScore = (word) => {
     // Your scoring logic
@@ -132,7 +142,7 @@ function GameScreen() {
             {row.map((letter, letterIndex) => (
               <TouchableOpacity
                 key={`${rowIndex}-${letterIndex}`}
-                style={styles.tile}
+                style={[styles.tile, isIncorrectSubmission && styles.incorrectTile]}
                 onPress={() => onLetterPress(letter, rowIndex, letterIndex)}>
                 <Text style={styles.letter}>{letter}</Text>
               </TouchableOpacity>
@@ -233,6 +243,15 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
+  incorrectTile: {
+    width: tileWidth,
+    height: tileWidth,
+    margin: tileMargin,
+    backgroundColor: 'red',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  
   letter: {
     fontSize: 24,
     fontWeight: 'bold',
