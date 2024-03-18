@@ -32,4 +32,16 @@ const fetchTopScores = (callback) => {
   });
 };
 
-export { init, insertScore, fetchTopScores };
+const wipeLeaderboard = (callback) => {
+  db.transaction((tx) => {
+    tx.executeSql(
+      'DELETE FROM scores;',
+      [],
+      (_, result) => callback && callback(result),
+      (_, error) => console.log(error)
+    );
+  });
+};
+
+
+export { init, insertScore, fetchTopScores, wipeLeaderboard };

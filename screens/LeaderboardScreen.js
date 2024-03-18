@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, FlatList, StyleSheet } from 'react-native';
+import { View, Text, FlatList, StyleSheet, Button } from 'react-native';
 import * as Database from '../database';
 
 function LeaderboardScreen() {
@@ -8,6 +8,13 @@ function LeaderboardScreen() {
   useEffect(() => {
     Database.fetchTopScores(setScores);
   }, []);
+
+  const handleWipeLeaderboard = () => {
+    Database.wipeLeaderboard(() => {
+      // Optionally, fetch scores again to update the UI
+      Database.fetchTopScores(setScores);
+    });
+  };
 
   return (
     <View style={styles.container}>
@@ -20,9 +27,13 @@ function LeaderboardScreen() {
           </View>
         )}
       />
+      <Button title="Wipe Leaderboard" onPress={handleWipeLeaderboard} />
     </View>
   );
 }
+
+// Styles remain unchanged
+
 
 const styles = StyleSheet.create({
   container: {
