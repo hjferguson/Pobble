@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Dimensions, Alert } from 'react-native';
+import dictionary from '../dictionary.json';
 
 const BOARD_SIZE = 4;
 const LETTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"; // Simplified, consider letter frequency and distribution for a real game
@@ -39,13 +40,22 @@ function GameScreen() {
 };
 
 const submitWord = () => {
-  const word = selectedLetters.join('');
-  Alert.alert("Word Submitted", word);
-  // Here you could add logic to validate the word and update the score
+  const word = selectedLetters.join('').toLowerCase();
+  if (isWordInDictionary(word)) {
+    Alert.alert("Valid Word", word);
+    // Handle valid word (e.g., update score)
+  } else {
+    Alert.alert("Invalid Word", word);
+    // Handle invalid word if needed
+  }
+  // Reset selections for the next word
   setSelectedLetters([]);
   setSelectedPositions([]);
 };
 
+const isWordInDictionary = (word) => {
+  return dictionary.includes(word.toLowerCase());
+};
 
   return (
     <View style={styles.container}>
