@@ -11,7 +11,11 @@ const Stack = createNativeStackNavigator();
 function AppNavigator() {
   return (
     <NavigationContainer>
-      <Stack.Navigator initialRouteName="MainMenu">
+      <Stack.Navigator 
+        initialRouteName="MainMenu"
+        screenOptions={{
+          headerShown: false, //removes annoying header
+        }}>
         <Stack.Screen name="MainMenu" component={MainMenuScreen} options={{ title: 'Main Menu' }} />
         <Stack.Screen name="Game" component={GameScreen} options={{ title: 'Game' }} />
         <Stack.Screen name="Leaderboard" component={LeaderboardScreen} options={{ title: 'Leaderboard' }} />
