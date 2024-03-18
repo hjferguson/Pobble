@@ -25,6 +25,7 @@ function GameScreen() {
   const [board, setBoard] = useState([]);
   const [selectedLetters, setSelectedLetters] = useState([]);
   const [selectedPositions, setSelectedPositions] = useState([]);
+  const [score, setScore] = useState(0);
 
 
   useEffect(() => {
@@ -42,21 +43,37 @@ function GameScreen() {
 const submitWord = () => {
   const word = selectedLetters.join('').toLowerCase();
   if (isWordInDictionary(word)) {
-    Alert.alert("Valid Word", word);
-    // Handle valid word (e.g., update score)
+    
+    setScore((prevScore) => prevScore + generateScore(word));
+    //Alert.alert("Valid Word", `Score for this word: ${generateScore(word)}`);
   } else {
     Alert.alert("Invalid Word", word);
-    // Handle invalid word if needed
   }
   // Reset selections for the next word
   setSelectedLetters([]);
   setSelectedPositions([]);
 };
 
+
 const isWordInDictionary = (word) => {
   return dictionary.includes(word.toLowerCase());
 };
 
+const generateScore = (word) => {
+  let score = 0;
+  if (word.length === 2 || word.length === 3) {
+    score = 1;
+  } else if (word.length === 4) {
+    score = 2;
+  } else if (word.length === 5) {
+    score = 3;
+  } else if (word.length === 6) {
+    score = 5;
+  } else if (word.length >= 7) {
+    score = 10;
+  }
+  return score;
+}
   return (
     <View style={styles.container}>
       <View style={styles.board}>
@@ -80,6 +97,7 @@ const isWordInDictionary = (word) => {
           <Text style={styles.submitButtonText}>Submit Word</Text>
         </TouchableOpacity>
       </View>
+      <Text>Score: {score}</Text>
 
     </View>
   );
