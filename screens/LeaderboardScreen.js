@@ -11,7 +11,6 @@ function LeaderboardScreen() {
 
   const handleWipeLeaderboard = () => {
     Database.wipeLeaderboard(() => {
-      // Optionally, fetch scores again to update the UI
       Database.fetchTopScores(setScores);
     });
   };
@@ -32,26 +31,22 @@ function LeaderboardScreen() {
   );
 }
 
-// Styles remain unchanged
-
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1, // Use flex in container to expand to the whole screen
-    justifyContent: 'center', // Center content vertically
-    alignItems: 'center', // Center content horizontally
-    marginTop: 200, // Add some margin at the top
+    flex: 1, 
+    justifyContent: 'center', 
+    alignItems: 'center', 
+    marginTop: 200, 
   },
   itemContainer: {
-    // Style for each item container
-    flexDirection: 'row', // Arrange initials and score in a row
-    justifyContent: 'center', // Center item content horizontally
-    alignItems: 'center', // Center item content vertically
-    padding: 10, // Add some padding for aesthetics
+    flexDirection: 'row', 
+    justifyContent: 'center', 
+    alignItems: 'center', 
+    padding: 10, 
   },
   itemText: {
-    // Style for the text of each item
-    fontSize: 18, // Increase the font size for better readability
+    fontSize: 18, 
   },
 });
 
