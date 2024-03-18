@@ -3,6 +3,8 @@ import { View, Text, StyleSheet, TouchableOpacity, Dimensions, Alert, Modal, Tex
 import dictionary from '../dictionary.json';
 import * as Database from '../database';
 import { MaterialIcons } from '@expo/vector-icons';
+import { useNavigation } from '@react-navigation/native';
+
 
 
 const { width } = Dimensions.get('window');
@@ -10,6 +12,8 @@ const BOARD_SIZE = 4;
 const LETTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 const tileMargin = 2;
 const tileWidth = Dimensions.get('window').width / BOARD_SIZE - 10; // Dynamic calculation for tile size
+
+
 
 function generateBoard() {
   let board = [];
@@ -25,6 +29,7 @@ function generateBoard() {
 }
 
 function GameScreen() {
+  const navigation = useNavigation();
   const [board, setBoard] = useState([]);
   const [selectedLetters, setSelectedLetters] = useState([]);
   const [selectedPositions, setSelectedPositions] = useState([]);
@@ -32,12 +37,24 @@ function GameScreen() {
   const [timeLeft, setTimeLeft] = useState(120); // Assuming a 2-minute timer
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [userInitials, setUserInitials] = useState("");
-
+  const [initialsSubmitted, setInitialsSubmitted] = useState(false); //prevent spam submissions
+  
   useEffect(() => {
     setBoard(generateBoard());
 
+    const interval = startTimer();
+    return () => clearInterval(interval); 
+  }, []);
+
+  const rotateBoard = () => {
+    const newBoard = board[0].map((val, index) => board.map(row => row[index]).reverse());
+    setBoard(newBoard);
+  };
+  
+  const startTimer = () => {
+    setTimeLeft(120); 
     const interval = setInterval(() => {
-      setTimeLeft((prevTime) => {
+      setTimeLeft(prevTime => {
         if (prevTime <= 1) {
           clearInterval(interval);
           setIsModalVisible(true);
@@ -46,20 +63,11 @@ function GameScreen() {
         return prevTime - 1;
       });
     }, 1000);
-
-    return () => clearInterval(interval);
-  }, []);
-
-  const rotateBoard = () => {
-    const newBoard = board[0].map((val, index) => board.map(row => row[index]).reverse());
-    setBoard(newBoard);
+    return interval; 
   };
-  
 
   const saveScoreToDB = (initials, score) => {
     Database.insertScore(initials, score, () => {
-      console.log('Score saved to DB');
-      // Optionally reset game state here or navigate to another screen
     });
   };
 
@@ -89,11 +97,32 @@ function GameScreen() {
     return score;
   };
 
+  const playAgain = () => {
+    // Navigate back to the MainMenu screen
+    navigation.popToTop(); // This assumes MainMenu is the first screen in your stack
+  
+    // Then navigate back to the GameScreen
+    requestAnimationFrame(() => {
+      navigation.navigate('Game');
+    });
+  };
+  
+  const goToMainMenu = () => {
+    setIsModalVisible(false); 
+    navigation.navigate('MainMenu');
+  };
+  
+  const submitInitials = () => {
+    if (userInitials.trim() === "") {
+      Alert.alert("Error", "Please enter your initials.");
+      return;
+    }};
+
   return (
     <ScrollView contentContainerStyle={styles.container}>
       <Text style={styles.timer}>Time Left: {timeLeft}</Text>
       <TouchableOpacity style={styles.rotateButton} onPress={rotateBoard}>
-        <MaterialIcons name="rotate-right" size={40} color="white" />
+        <MaterialIcons name="rotate-left" size={40} color="white" />
       </TouchableOpacity>
 
 
@@ -132,17 +161,32 @@ function GameScreen() {
               autoFocus={true}
               textAlign={'center'}
             />
-            <TouchableOpacity
+            {!initialsSubmitted && (
+              <TouchableOpacity
               style={styles.modalSubmitButton}
               onPress={() => {
+                submitInitials();
                 saveScoreToDB(userInitials.toUpperCase(), score);
-                setIsModalVisible(!isModalVisible);
+                setInitialsSubmitted(true);
+                
               }}>
               <Text style={styles.modalSubmitButtonText}>Submit</Text>
             </TouchableOpacity>
+            )}
+              
+            <TouchableOpacity
+              style={styles.modalOptionButton}
+              onPress={playAgain}>
+              <Text style={styles.modalOptionButtonText}>Play Again</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.modalOptionButton}
+              onPress={goToMainMenu}>
+              <Text style={styles.modalOptionButtonText}>Main Menu</Text>
+            </TouchableOpacity>
+            </View>
           </View>
-        </View>
-      </Modal>
+        </Modal>
     </ScrollView>
   );
 
@@ -171,8 +215,8 @@ const styles = StyleSheet.create({
     backgroundColor: '#2196F3',
     padding: 10,
     borderRadius: 50,
-    alignItems: 'center', // Center icon inside the button
-    justifyContent: 'center', // Center icon inside the button
+    alignItems: 'center', 
+    justifyContent: 'center', 
   },  
   board: {
     flexDirection: 'row', 
@@ -249,6 +293,18 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     textAlign: "center"
   },
+  modalOptionButton: {
+    backgroundColor: '#4CAF50', 
+    padding: 10,
+    marginTop: 10,
+    borderRadius: 5,
+  },
+  modalOptionButtonText: {
+    color: 'white',
+    fontSize: 16,
+    textAlign: 'center',
+  },
+  
 });
 
 
