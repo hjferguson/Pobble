@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Dimensions, Alert, Modal, TextInput, ScrollView } from 'react-native';
 import dictionary from '../dictionary.json';
 import * as Database from '../database';
+import { MaterialIcons } from '@expo/vector-icons';
+
 
 const { width } = Dimensions.get('window');
 const BOARD_SIZE = 4;
@@ -48,6 +50,12 @@ function GameScreen() {
     return () => clearInterval(interval);
   }, []);
 
+  const rotateBoard = () => {
+    const newBoard = board[0].map((val, index) => board.map(row => row[index]).reverse());
+    setBoard(newBoard);
+  };
+  
+
   const saveScoreToDB = (initials, score) => {
     Database.insertScore(initials, score, () => {
       console.log('Score saved to DB');
@@ -84,6 +92,11 @@ function GameScreen() {
   return (
     <ScrollView contentContainerStyle={styles.container}>
       <Text style={styles.timer}>Time Left: {timeLeft}</Text>
+      <TouchableOpacity style={styles.rotateButton} onPress={rotateBoard}>
+        <MaterialIcons name="rotate-right" size={40} color="white" />
+      </TouchableOpacity>
+
+
       <View style={styles.board}>
         {board.map((row, rowIndex) => (
           <View key={rowIndex} style={styles.row}>
@@ -141,25 +154,32 @@ function GameScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: 'flex-start', // Align content to the top
+    justifyContent: 'flex-start', 
     alignItems: 'center',
-    paddingTop: 20,
-    paddingBottom: 20, // Add padding at the bottom too
+    paddingTop: 40,
+    paddingBottom: 20, 
   },
   timer: {
     fontSize: 22,
     fontWeight: 'bold',
     marginVertical: 10,
   },
+  rotateButton: {
+    position: 'absolute',
+    top: 30,
+    left: 15,
+    backgroundColor: '#2196F3',
+    padding: 10,
+    borderRadius: 50,
+    alignItems: 'center', // Center icon inside the button
+    justifyContent: 'center', // Center icon inside the button
+  },  
   board: {
-    flexDirection: 'row', // Use row to make the tiles wrap correctly
-    flexWrap: 'wrap', // Allow tiles to wrap to form the grid
-    justifyContent: 'center', // Center the tiles horizontally
-    maxWidth: width, // Set maximum width to prevent overflow
-    marginVertical: 20, // Provide vertical space around the board
-  },
-  row: {
-    // Remove this style if you're not using it anymore
+    flexDirection: 'row', 
+    flexWrap: 'wrap', 
+    justifyContent: 'center', 
+    maxWidth: width, 
+    marginVertical: 20, 
   },
   tile: {
     width: tileWidth,
@@ -178,9 +198,6 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     marginVertical: 10,
   },
-  submitButtonContainer: {
-    // Remove this style if you're not using a separate container for the button
-  },
   submitButton: {
     backgroundColor: 'green',
     paddingVertical: 15,
@@ -188,7 +205,7 @@ const styles = StyleSheet.create({
     borderRadius: 5,
     alignItems: 'center',
     justifyContent: 'center',
-    marginVertical: 20, // Added margin for spacing from the board
+    marginVertical: 20, 
     width: '60%', // Match the width to the board width
   },
   submitButtonText: {
