@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, FlatList } from 'react-native';
+import { View, Text, FlatList, StyleSheet } from 'react-native';
 import * as Database from '../database';
 
 function LeaderboardScreen() {
@@ -10,18 +10,38 @@ function LeaderboardScreen() {
   }, []);
 
   return (
-    <View>
+    <View style={styles.container}>
       <FlatList
         data={scores}
         keyExtractor={(item) => item.id.toString()}
         renderItem={({ item }) => (
-          <View>
-            <Text>{`${item.initials}: ${item.score}`}</Text>
+          <View style={styles.itemContainer}>
+            <Text style={styles.itemText}>{`${item.initials}: ${item.score}`}</Text>
           </View>
         )}
       />
     </View>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1, // Use flex in container to expand to the whole screen
+    justifyContent: 'center', // Center content vertically
+    alignItems: 'center', // Center content horizontally
+    marginTop: 200, // Add some margin at the top
+  },
+  itemContainer: {
+    // Style for each item container
+    flexDirection: 'row', // Arrange initials and score in a row
+    justifyContent: 'center', // Center item content horizontally
+    alignItems: 'center', // Center item content vertically
+    padding: 10, // Add some padding for aesthetics
+  },
+  itemText: {
+    // Style for the text of each item
+    fontSize: 18, // Increase the font size for better readability
+  },
+});
 
 export default LeaderboardScreen;

@@ -4,6 +4,7 @@ import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 function MainMenuScreen({ navigation }) {
   return (
     <View style={styles.container}>
+      <Text style={{ fontSize: 40, fontWeight: 'bold', marginBottom: 50 }}>Pobble</Text>
       <TouchableOpacity style={styles.button} onPress={() => navigation.navigate('Game')}>
         <Text style={styles.buttonText}>Play Game</Text>
       </TouchableOpacity>
