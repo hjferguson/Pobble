@@ -1,10 +1,25 @@
-import React from 'react';
-import { View, Text } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { View, Text, FlatList } from 'react-native';
+import * as Database from '../database';
 
 function LeaderboardScreen() {
+  const [scores, setScores] = useState([]);
+
+  useEffect(() => {
+    Database.fetchTopScores(setScores);
+  }, []);
+
   return (
     <View>
-      <Text>Leaderboard Screen</Text>
+      <FlatList
+        data={scores}
+        keyExtractor={(item) => item.id.toString()}
+        renderItem={({ item }) => (
+          <View>
+            <Text>{`${item.initials}: ${item.score}`}</Text>
+          </View>
+        )}
+      />
     </View>
   );
 }

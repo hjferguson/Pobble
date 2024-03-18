@@ -27,12 +27,16 @@ const styles = StyleSheet.create({
   button: {
     backgroundColor: '#007bff',
     padding: 15,
-    borderRadius: 5,
+    borderRadius: 50,
     margin: 10,
+    minWidth: 200,
+    alignItems: 'center',
+    
   },
   buttonText: {
     color: '#ffffff',
     fontSize: 18,
+    fontWeight: 'bold',
   },
 });
 
