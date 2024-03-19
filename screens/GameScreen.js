@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Dimensions, Alert, Modal, TextInput, ScrollView } from 'react-native';
+import React, { useState, useEffect, useRef } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, Dimensions, Alert, Modal, TextInput, ScrollView, PanResponder } from 'react-native';
 import dictionary from '../dictionary.json';
 import * as Database from '../database';
 import { MaterialIcons } from '@expo/vector-icons';
@@ -12,6 +12,7 @@ const BOARD_SIZE = 4;
 const LETTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 const tileMargin = 2;
 const tileWidth = Dimensions.get('window').width / BOARD_SIZE - 10; // Dynamic calculation for tile size
+const tileHeight = Dimensions.get('window').height / BOARD_SIZE - 10; // Dynamic calculation for tile size
 
 
 
@@ -39,8 +40,29 @@ function GameScreen() {
   const [userInitials, setUserInitials] = useState("");
   const [initialsSubmitted, setInitialsSubmitted] = useState(false); //prevent spam submissions
   const [isIncorrectSubmission, setIsIncorrectSubmission] = useState(false);
+  const [boardLayout, setBoardLayout] = useState({ x: 0, y: 0, width: 0, height: 0 });
 
-  
+  const panResponder = useRef(
+    PanResponder.create({
+      onStartShouldSetPanResponder: () => true,
+      onPanResponderGrant: (evt) => {
+        const {pageX, pageY} = evt.nativeEvent;
+        console.log('Grant:', pageX, pageY);
+        selectTileByCoordinates(pageX, pageY);
+    },
+    onPanResponderMove: (evt) => {
+        const {pageX, pageY} = evt.nativeEvent;
+        console.log('Move:', pageX, pageY);
+        selectTileByCoordinates(pageX, pageY);
+    },
+    
+      onPanResponderRelease: () => {
+        submitWord();
+        console.log('released finger');
+      }
+    })
+  ).current;
+
   useEffect(() => {
     setBoard(generateBoard());
 
@@ -52,7 +74,43 @@ function GameScreen() {
     const newBoard = board[0].map((val, index) => board.map(row => row[index]).reverse());
     setBoard(newBoard);
   };
-  
+
+  const handleBoardLayout = (event) => {
+    const {x, y, width, height} = event.nativeEvent.layout;
+    setBoardLayout({x, y, width, height});
+    console.log("Board Layout:", {x, y, width, height});
+};
+
+
+const selectTileByCoordinates = (x, y) => {
+  // Check if boardLayout and board are defined
+  if (!boardLayout || !board) {
+    console.warn("Board layout or board data is undefined.");
+    return;
+  }
+
+  const relativeX = x - boardLayout.x;
+  const relativeY = y - boardLayout.y;
+
+  const effectiveTileWidth = tileWidth + (tileMargin * 2);
+  const effectiveTileHeight = tileHeight + (tileMargin * 2);
+
+  const tileX = Math.floor(relativeX / effectiveTileWidth);
+  const tileY = Math.floor(relativeY / effectiveTileHeight);
+
+  console.log("Calculated Tile:", { tileX, tileY });
+
+  // Check if calculated indices are within the board boundaries
+  if (tileX >= 0 && tileX < BOARD_SIZE && tileY >= 0 && tileY < BOARD_SIZE) {
+    onLetterPress('A', tileX, tileY); // Placeholder action
+  } else {
+    console.warn("Calculated tile indices are out of bounds.");
+  }
+};
+
+
+
+
   const startTimer = () => {
     setTimeLeft(120); 
     const interval = setInterval(() => {
@@ -74,36 +132,42 @@ function GameScreen() {
   };
 
   const onLetterPress = (letter, rowIndex, letterIndex) => {
-    const position = `${rowIndex}-${letterIndex}`;
-    if (!selectedPositions.includes(position)) {
-      setSelectedLetters([...selectedLetters, letter]);
-      setSelectedPositions([...selectedPositions, position]);
+    const newPosition = `${rowIndex}-${letterIndex}`;
+    console.log(`Attempting to add: ${newPosition}`);
+    if (!selectedPositions.includes(newPosition)) {
+        setSelectedLetters((prevLetters) => [...prevLetters, letter]);
+        setSelectedPositions((prevPositions) => [...prevPositions, newPosition]);
+        console.log(`Added: ${newPosition}`);
     }
-  };
+};
+
+  
 
   const submitWord = () => {
     const word = selectedLetters.join('').toLowerCase();
     if (dictionary.includes(word)) {
         // Correct word
         setScore((prevScore) => prevScore + generateScore(word));
-        setSelectedLetters([]); // Reset only if the word is correct
-        setSelectedPositions([]); // Reset only if the word is correct
+        setSelectedLetters([]); 
+        setSelectedPositions([]); 
     } else {
         // Incorrect word
         setIsIncorrectSubmission(true);
         setTimeout(() => {
             setIsIncorrectSubmission(false);
-            setSelectedLetters([]); // Consider resetting even if the word is incorrect, to clear selection
-            setSelectedPositions([]); // Consider resetting even if the word is incorrect, to clear selection
-        }, 300); // Keep this to visually indicate an incorrect word, then reset
+            setSelectedLetters([]); 
+            setSelectedPositions([]); 
+        }, 300); 
     }
-};
+  };
+
+ 
 
 
   const generateScore = (word) => {
-    // Your scoring logic
+    //scoring logic
     let score = 0;
-    if (word.length >= 3) score = word.length - 2;
+    if (word.length >= 2) score = word.length - 2;
     return score;
   };
 
@@ -128,32 +192,36 @@ function GameScreen() {
       return;
     }};
 
-  return (
-    <ScrollView contentContainerStyle={styles.container}>
-      <Text style={styles.timer}>Time Left: {timeLeft}</Text>
-      <TouchableOpacity style={styles.rotateButton} onPress={rotateBoard}>
-        <MaterialIcons name="rotate-left" size={40} color="white" />
-      </TouchableOpacity>
-
-
-      <View style={styles.board}>
-        {board.map((row, rowIndex) => (
-          <View key={rowIndex} style={styles.row}>
-            {row.map((letter, letterIndex) => (
-              <TouchableOpacity
-                key={`${rowIndex}-${letterIndex}`}
-                style={[styles.tile, isIncorrectSubmission && styles.incorrectTile]}
-                onPress={() => onLetterPress(letter, rowIndex, letterIndex)}>
-                <Text style={styles.letter}>{letter}</Text>
-              </TouchableOpacity>
-            ))}
-          </View>
+    return (
+      <ScrollView contentContainerStyle={styles.container}>
+        <Text style={styles.timer}>Time Left: {timeLeft}</Text>
+        <TouchableOpacity style={styles.rotateButton} onPress={rotateBoard}>
+          <MaterialIcons name="rotate-left" size={40} color="white" />
+        </TouchableOpacity>
+    
+        {/* Attach PanResponder handlers directly to this view */}
+        <View 
+          style={[styles.board, {borderWidth: 2, borderColor: 'red'}]} onLayout={handleBoardLayout} {...panResponder.panHandlers}>
+          
+          {board.map((row, rowIndex) => (
+            <View key={rowIndex} style={styles.row}>
+                {row.map((letter, letterIndex) => {
+                    const position = `${rowIndex}-${letterIndex}`;
+                    const isSelected = selectedPositions.includes(position);
+                    return (
+                        <View
+                            key={position}
+                            style={[styles.tile, isSelected ? styles.selectedTile : {}]}>
+                            <Text style={styles.letter}>{letter}</Text>
+                        </View>
+                    );
+                })}
+            </View>
         ))}
-      </View>
-      <TouchableOpacity style={styles.submitButton} onPress={submitWord}>
-        <Text style={styles.submitButtonText}>Submit Word</Text>
-      </TouchableOpacity>
-      <Text style={styles.score}>Score: {score}</Text>
+
+        </View>
+        
+        <Text style={styles.score}>Score: {score}</Text>
 
       <Modal
         animationType="slide"
@@ -242,6 +310,9 @@ const styles = StyleSheet.create({
     backgroundColor: '#add8e6',
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  selectedTile: {
+    backgroundColor: 'lightgreen', 
   },
   incorrectTile: {
     width: tileWidth,
